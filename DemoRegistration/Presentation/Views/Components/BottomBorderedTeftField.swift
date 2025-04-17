@@ -10,6 +10,7 @@ import SwiftUI
 struct BottomBorderedTeftField: View {
     
     @Binding var text: String
+    @Binding var isError: FieldError
     @FocusState.Binding var isFocused: FocusableField?
     
     var field: FocusableField
@@ -27,6 +28,14 @@ struct BottomBorderedTeftField: View {
                 TextField(field.rawValue, text: $text)
                     .focused($isFocused, equals: field)
                     .modifier(TextFieldModifier(isFocused: isFocused == field))
+            }
+            
+            Text("\(isError.status)")
+            if isError.status {
+                Text(isError.message)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .animation(.easeIn, value: isError.status)
             }
         }
     }

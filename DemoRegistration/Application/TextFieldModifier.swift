@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TextFieldModifier: ViewModifier {
+    var isError: Bool = false
     var isFocused: Bool = false
     var borderFocusedColor: Color = .blue
     var borderUnFocusedColor: Color = .gray
@@ -25,9 +26,9 @@ struct TextFieldModifier: ViewModifier {
                     .fill(Color(.systemGray6))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(isFocused ? borderFocusedColor : borderUnFocusedColor, lineWidth: isFocused ? borderFocusedWidth : borderUnFocusedWidth)
+                            .stroke(isFocused ? (isError ? borderErroredColor : borderFocusedColor) : borderUnFocusedColor, lineWidth: isFocused ? borderFocusedWidth : borderUnFocusedWidth)
                     )
             )
-            .animation(.easeInOut(duration: 0.2), value: isFocused)
+            .animation(.easeInOut(duration: 0.3), value: isFocused)
     }
 }

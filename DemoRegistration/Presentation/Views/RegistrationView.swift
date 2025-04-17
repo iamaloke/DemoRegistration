@@ -7,29 +7,17 @@
 
 import SwiftUI
 
-enum FocusableField: String, Focusable {
-    case name = "Name"
-    case email = "Email"
-    case password = "Password"
-    
-    var isSecured: Bool {
-        switch self {
-            case .password: return true
-            default: return false
-        }
-    }
-    
-    var id: FocusableField {
-        self
-    }
+struct FieldError {
+    let status: Bool
+    let message: String
 }
-
 
 struct RegistrationView: View {
     
     @FocusState private var isFocused: FocusableField?
     
-    @State private var fieldValues: [FocusableField: String] = FocusableField.emptyFieldValues()
+    @State private var fieldValues: [FocusableField: String] = FocusableField.emptyFieldValues("")
+    @State private var fieldErrors: [FocusableField: FieldError] = FocusableField.emptyFieldValues(FieldError(status: false, message: ""))
     @State private var isLoading: Bool = false
     
     var body: some View {
@@ -46,6 +34,7 @@ struct RegistrationView: View {
                     ForEach(FocusableField.allCases, id: \.self) { element in
                         BottomBorderedTeftField(
                             text: binding(for: element),
+                            isError: binding(for: element),
                             isFocused: $isFocused,
                             field: element)
                     }
@@ -56,6 +45,10 @@ struct RegistrationView: View {
                     
                     Button {
                         isFocused = nil
+                        
+                        if validate() {
+                            
+                        }
                     } label: {
                         Text("Register")
                             .font(.system(size: 16, weight: .bold))
@@ -66,7 +59,7 @@ struct RegistrationView: View {
                             .clipShape(.rect(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
-                    .disabled(isLoading)
+                    .disabled(isLoading || fieldValues.allSatisfy { $0.value.isEmpty })
         
                 }
                 .padding()
@@ -87,10 +80,43 @@ struct RegistrationView: View {
         }
     }
     
+    private func validate() -> Bool {
+        var isValid = true
+        
+        FocusableField.allCases.forEach { field in
+            fieldErrors[field] = FieldError(status: false, message: "")
+            
+            if let value = fieldValues[field], value.isEmpty {
+                isValid = false
+                fieldErrors[field] = FieldError(status: true, message: "Please enter \(field.rawValue)")
+            } else if field == .email, let value = fieldValues[field], !isValidEmail(value) {
+                isValid = false
+                fieldErrors[field] = FieldError(status: true, message: "Please enter valid email")
+            } else if field == .password, let value = fieldValues[field] {
+                isValid = false
+                let issues = validatePassword(value)
+                if !issues.isEmpty {
+                    fieldErrors[field] = FieldError(status: true, message: issues.reduce("", { partialResult, errorCase in
+                        partialResult + errorCase.rawValue + ",\n"
+                    }))
+                }
+            }
+        }
+        
+        return isValid
+    }
+    
     private func binding(for field: FocusableField) -> Binding<String> {
         Binding(
-            get: { fieldValues[field, default: ""] },
+            get: { fieldValues[field] ?? "" },
             set: { fieldValues[field] = $0 }
+        )
+    }
+    
+    private func binding(for field: FocusableField) -> Binding<FieldError> {
+        Binding(
+            get: { fieldErrors[field] ?? FieldError(status: false, message: "") },
+            set: { fieldErrors[field] = $0 }
         )
     }
 }
