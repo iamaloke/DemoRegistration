@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum FocusableField: String, Hashable, Identifiable, CaseIterable {
+enum FocusableField: String, Focusable {
     case name = "Name"
     case email = "Email"
     case password = "Password"
@@ -29,40 +29,61 @@ struct RegistrationView: View {
     
     @FocusState private var isFocused: FocusableField?
     
-    @State private var fieldValues: [FocusableField: String] = [
-        .name: "",
-        .email: "",
-        .password: ""
-    ]
+    @State private var fieldValues: [FocusableField: String] = FocusableField.emptyFieldValues()
     @State private var isLoading: Bool = false
     
     var body: some View {
-        ZStack {
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(FocusableField.allCases, id: \.self) { element in
-                    BottomBorderedTeftField(
-                        text: binding(for: element),
-                        isFocused: $isFocused,
-                        field: element)
-                }
-                
-                Button("Register") {
-                    isFocused = nil
-                }
-                .disabled(isLoading)
-            }
-            .padding()
-            
-            if isLoading {
-                ZStack {
-                    Color
-                        .black
-                        .opacity(0.1)
-                        .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                VStack(alignment: .leading, spacing: 16) {
                     
-                    ProgressView()
+                    Text("Start by creating a free account-Its simple!")
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                    
+                    Spacer()
+                    
+                    ForEach(FocusableField.allCases, id: \.self) { element in
+                        BottomBorderedTeftField(
+                            text: binding(for: element),
+                            isFocused: $isFocused,
+                            field: element)
+                    }
+                    
+                    Spacer()
+                    Spacer()
+                    Spacer()
+                    
+                    Button {
+                        isFocused = nil
+                    } label: {
+                        Text("Register")
+                            .font(.system(size: 16, weight: .bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(.purple)
+                            .foregroundColor(.white)
+                            .clipShape(.rect(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isLoading)
+        
+                }
+                .padding()
+                
+                if isLoading {
+                    ZStack {
+                        Color
+                            .black
+                            .opacity(0.1)
+                            .ignoresSafeArea()
+                        
+                        ProgressView()
+                    }
                 }
             }
+            .navigationTitle("Create new Account")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
     
@@ -76,34 +97,4 @@ struct RegistrationView: View {
 
 #Preview {
     RegistrationView()
-}
-
-struct BottomBorderedTeftField: View {
-    
-    @Binding var text: String
-    @FocusState.Binding var isFocused: FocusableField?
-    
-    var field: FocusableField
-    var borderFocusedColor: Color = .blue
-    var borderUnFocusedColor: Color = .gray
-    var borderErroredColor: Color = .red
-    var borderWidth: CGFloat = 1
-    
-    var body: some View {
-        VStack {
-            if field.isSecured {
-                SecureField(field.rawValue, text: $text)
-                    .padding(.bottom, 4)
-                    .focused($isFocused, equals: field)
-            } else {
-                TextField(field.rawValue, text: $text)
-                    .padding(.bottom, 4)
-                    .focused($isFocused, equals: field)
-            }
-            
-            Rectangle()
-                .frame(height: borderWidth)
-                .foregroundColor(isFocused == field ? borderFocusedColor : borderUnFocusedColor)
-        }
-    }
 }
