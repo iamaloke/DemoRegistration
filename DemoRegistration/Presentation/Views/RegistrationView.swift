@@ -15,6 +15,12 @@ struct RegistrationView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        isFocused = nil
+                    }
+                
                 VStack(alignment: .leading, spacing: 16) {
                     
                     Text("Start by creating a free account-Its simple!")
@@ -52,7 +58,7 @@ struct RegistrationView: View {
                         Text("Register")
                             .font(.system(size: 16, weight: .bold))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
+                            .padding(.vertical, 15)
                             .background(.purple)
                             .foregroundColor(.white)
                             .clipShape(.rect(cornerRadius: 8))
@@ -71,6 +77,21 @@ struct RegistrationView: View {
                             .ignoresSafeArea()
                         
                         ProgressView()
+                    }
+                }
+                
+                if viewModel.showFlashMessage {
+                    VStack {
+                        Spacer()
+                        
+                        Text("Splash message")
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.black.opacity(0.8))
+                            .padding(.bottom, 30)
+                            .padding(.horizontal)
+                            .animation(.easeIn, value: viewModel.showFlashMessage)
                     }
                 }
             }

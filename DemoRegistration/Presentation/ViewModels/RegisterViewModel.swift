@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 final class RegisterViewModel: ObservableObject {
     
+    @Published var showFlashMessage: Bool = false
     @Published var isLoading: Bool = false
     @Published var fieldValues: [FocusableField: String] = FocusableField.emptyFieldValues("")
     @Published var fieldErrors: [FocusableField: FieldError] = FocusableField.emptyFieldValues(FieldError(status: false, message: ""))
@@ -33,6 +34,12 @@ final class RegisterViewModel: ObservableObject {
                     fieldErrors[field] = FieldError(status: true, message: issues.reduce("", { partialResult, errorCase in
                         partialResult + errorCase.rawValue + ",\n"
                     }))
+                }
+            } else {
+                showFlashMessage = true
+                Task {
+                    try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+                    self.showFlashMessage = false
                 }
             }
         }

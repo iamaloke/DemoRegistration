@@ -28,6 +28,8 @@ struct BottomBorderedTeftField: View {
             } else {
                 TextField(field.rawValue, text: $text)
                     .focused($isFocused, equals: field)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
                     .modifier(TextFieldModifier(isFocused: isFocused == field))
             }
             
