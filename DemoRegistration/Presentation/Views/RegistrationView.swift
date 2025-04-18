@@ -12,6 +12,16 @@ struct RegistrationView: View {
     @FocusState var isFocused: FocusableField?
     @StateObject var viewModel = RegisterViewModel()
     
+    var isError: Bool {
+        viewModel.isLoading ||
+        viewModel.name.isEmpty ||
+        viewModel.email.isEmpty ||
+        viewModel.password.isEmpty ||
+        viewModel.nameError.status ||
+        viewModel.emailError.status ||
+        viewModel.passwordError.status
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -29,31 +39,19 @@ struct RegistrationView: View {
                     
                     Spacer()
                     
-                    ForEach(FocusableField.allCases, id: \.self) { element in
-                        BottomBorderedTeftField(
-                            text: viewModel.binding(for: element),
-                            isError: viewModel.binding(for: element),
-                            isFocused: $isFocused,
-                            field: element)
-                    }
+                    BorderedTeftField(text: $viewModel.name, isError: $viewModel.nameError, isFocused: $isFocused, field: .name)
+                    
+                    BorderedTeftField(text: $viewModel.email, isError: $viewModel.emailError, isFocused: $isFocused, field: .email)
+                    
+                    BorderedTeftField(text: $viewModel.password, isError: $viewModel.passwordError, isFocused: $isFocused, field: .password)
                     
                     Spacer()
                     Spacer()
                     Spacer()
                     
                     Button {
-                        
-                        viewModel.isLoading = true
                         isFocused = nil
-                        
-                        Task {
-                            try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
-                            if viewModel.validate() {
-                                
-                            }
-                            self.viewModel.isLoading = false
-                        }
-                        
+                        viewModel.register()
                     } label: {
                         Text("Register")
                             .font(.system(size: 16, weight: .bold))
@@ -64,7 +62,7 @@ struct RegistrationView: View {
                             .clipShape(.rect(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
-                    .disabled(viewModel.isLoading || viewModel.fieldValues.allSatisfy { $0.value.isEmpty })
+                    .disabled(isError)
         
                 }
                 .padding()
@@ -83,8 +81,9 @@ struct RegistrationView: View {
                 if viewModel.showFlashMessage {
                     VStack {
                         Spacer()
+                        Spacer()
                         
-                        Text("Splash message")
+                        Text("Registration Successful!")
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -92,11 +91,16 @@ struct RegistrationView: View {
                             .padding(.bottom, 30)
                             .padding(.horizontal)
                             .animation(.easeIn, value: viewModel.showFlashMessage)
+                        
+                        Spacer()
                     }
                 }
             }
             .navigationTitle("Create new Account")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $viewModel.isRedirect) {
+                DashboardView()
+            }
         }
     }
 }

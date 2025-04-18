@@ -5,6 +5,7 @@
 //  Created by Alok Kumar on 18/04/25.
 //
 
+import Combine
 import SwiftUI
 
 @MainActor
@@ -12,53 +13,67 @@ final class RegisterViewModel: ObservableObject {
     
     @Published var showFlashMessage: Bool = false
     @Published var isLoading: Bool = false
-    @Published var fieldValues: [FocusableField: String] = FocusableField.emptyFieldValues("")
-    @Published var fieldErrors: [FocusableField: FieldError] = FocusableField.emptyFieldValues(FieldError(status: false, message: ""))
+    @Published var isRedirect: Bool = false
     
-    func validate() -> Bool {
-        var isValid = true
-        
-        FocusableField.allCases.forEach { field in
-            fieldErrors[field] = FieldError(status: false, message: "")
-            
-            if let value = fieldValues[field], value.isEmpty {
-                isValid = false
-                fieldErrors[field] = FieldError(status: true, message: "Please enter \(field.rawValue)")
-            } else if field == .email, let value = fieldValues[field], !isValidEmail(value) {
-                isValid = false
-                fieldErrors[field] = FieldError(status: true, message: "Please enter valid email")
-            } else if field == .password, let value = fieldValues[field] {
-                isValid = false
-                let issues = validatePassword(value)
-                if !issues.isEmpty {
-                    fieldErrors[field] = FieldError(status: true, message: issues.reduce("", { partialResult, errorCase in
-                        partialResult + errorCase.rawValue + ",\n"
-                    }))
-                }
-            } else {
-                showFlashMessage = true
-                Task {
-                    try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
-                    self.showFlashMessage = false
-                }
+    // Using custom property wrappers to validate fields
+    @ValidInputPublished var name: String = ""
+    @ValidEmailPublished var email: String = ""
+    @ValidPasswordPublished var password: String = ""
+    
+    @Published var nameError: FieldError = FieldError(status: false, message: "")
+    @Published var emailError: FieldError = FieldError(status: false, message: "")
+    @Published var passwordError: FieldError = FieldError(status: false, message: "")
+    
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        $name.subject
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.nameError = self?.$name.isValid ?? FieldError(status: false, message: "")
             }
-        }
+            .store(in: &cancellables)
         
-        return isValid
+        $email.subject
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.emailError = self?.$email.isValid ?? FieldError(status: false, message: "")
+            }
+            .store(in: &cancellables)
+        
+        $password.subject
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.passwordError = self?.$password.isValid ?? FieldError(status: false, message: "")
+            }
+            .store(in: &cancellables)
     }
     
-    func binding(for field: FocusableField) -> Binding<String> {
-        Binding(
-            get: { self.fieldValues[field] ?? "" },
-            set: { self.fieldValues[field] = $0 }
-        )
+    func register() {
+        isLoading = true
+        
+        Task {
+            try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+            
+            self.isLoading = false
+            self.name = ""
+            self.nameError = FieldError(status: false, message: "")
+            self.email = ""
+            self.emailError = FieldError(status: false, message: "")
+            self.password = ""
+            self.passwordError = FieldError(status: false, message: "")
+            
+            try await splash()
+        }
     }
     
-    func binding(for field: FocusableField) -> Binding<FieldError> {
-        Binding(
-            get: { self.fieldErrors[field] ?? FieldError(status: false, message: "") },
-            set: { self.fieldErrors[field] = $0 }
-        )
+    func splash() async throws {
+        isRedirect = false
+        showFlashMessage = true
+        
+        try await Task.sleep(nanoseconds: 1 * 1_000_000_000)
+        self.showFlashMessage = false
+        self.isRedirect = true
     }
 }
 

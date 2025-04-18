@@ -1,5 +1,5 @@
 //
-//  BottomBorderedTeftField.swift
+//  BorderedTeftField.swift
 //  DemoRegistration
 //
 //  Created by Alok Kumar on 17/04/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BottomBorderedTeftField: View {
+struct BorderedTeftField: View {
     
     @Binding var text: String
     @Binding var isError: FieldError
@@ -24,6 +24,8 @@ struct BottomBorderedTeftField: View {
             if field.isSecured {
                 SecureField(field.rawValue, text: $text)
                     .focused($isFocused, equals: field)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled(true)
                     .modifier(TextFieldModifier(isFocused: isFocused == field))
             } else {
                 TextField(field.rawValue, text: $text)
