@@ -17,6 +17,7 @@ struct BottomBorderedTeftField: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
+            
             Text(field.rawValue)
                 .font(.system(size: 16, weight: .medium))
             
@@ -30,7 +31,6 @@ struct BottomBorderedTeftField: View {
                     .modifier(TextFieldModifier(isFocused: isFocused == field))
             }
             
-            Text("\(isError.status)")
             if isError.status {
                 Text(isError.message)
                     .font(.caption)

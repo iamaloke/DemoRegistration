@@ -7,18 +7,10 @@
 
 import SwiftUI
 
-struct FieldError {
-    let status: Bool
-    let message: String
-}
-
 struct RegistrationView: View {
     
-    @FocusState private var isFocused: FocusableField?
-    
-    @State private var fieldValues: [FocusableField: String] = FocusableField.emptyFieldValues("")
-    @State private var fieldErrors: [FocusableField: FieldError] = FocusableField.emptyFieldValues(FieldError(status: false, message: ""))
-    @State private var isLoading: Bool = false
+    @FocusState var isFocused: FocusableField?
+    @StateObject var viewModel = RegisterViewModel()
     
     var body: some View {
         NavigationStack {
@@ -33,8 +25,8 @@ struct RegistrationView: View {
                     
                     ForEach(FocusableField.allCases, id: \.self) { element in
                         BottomBorderedTeftField(
-                            text: binding(for: element),
-                            isError: binding(for: element),
+                            text: viewModel.binding(for: element),
+                            isError: viewModel.binding(for: element),
                             isFocused: $isFocused,
                             field: element)
                     }
@@ -44,11 +36,18 @@ struct RegistrationView: View {
                     Spacer()
                     
                     Button {
+                        
+                        viewModel.isLoading = true
                         isFocused = nil
                         
-                        if validate() {
-                            
+                        Task {
+                            try? await Task.sleep(nanoseconds: 3 * 1_000_000_000)
+                            if viewModel.validate() {
+                                
+                            }
+                            self.viewModel.isLoading = false
                         }
+                        
                     } label: {
                         Text("Register")
                             .font(.system(size: 16, weight: .bold))
@@ -59,12 +58,12 @@ struct RegistrationView: View {
                             .clipShape(.rect(cornerRadius: 8))
                     }
                     .buttonStyle(.plain)
-                    .disabled(isLoading || fieldValues.allSatisfy { $0.value.isEmpty })
+                    .disabled(viewModel.isLoading || viewModel.fieldValues.allSatisfy { $0.value.isEmpty })
         
                 }
                 .padding()
                 
-                if isLoading {
+                if viewModel.isLoading {
                     ZStack {
                         Color
                             .black
@@ -78,46 +77,6 @@ struct RegistrationView: View {
             .navigationTitle("Create new Account")
             .navigationBarTitleDisplayMode(.inline)
         }
-    }
-    
-    private func validate() -> Bool {
-        var isValid = true
-        
-        FocusableField.allCases.forEach { field in
-            fieldErrors[field] = FieldError(status: false, message: "")
-            
-            if let value = fieldValues[field], value.isEmpty {
-                isValid = false
-                fieldErrors[field] = FieldError(status: true, message: "Please enter \(field.rawValue)")
-            } else if field == .email, let value = fieldValues[field], !isValidEmail(value) {
-                isValid = false
-                fieldErrors[field] = FieldError(status: true, message: "Please enter valid email")
-            } else if field == .password, let value = fieldValues[field] {
-                isValid = false
-                let issues = validatePassword(value)
-                if !issues.isEmpty {
-                    fieldErrors[field] = FieldError(status: true, message: issues.reduce("", { partialResult, errorCase in
-                        partialResult + errorCase.rawValue + ",\n"
-                    }))
-                }
-            }
-        }
-        
-        return isValid
-    }
-    
-    private func binding(for field: FocusableField) -> Binding<String> {
-        Binding(
-            get: { fieldValues[field] ?? "" },
-            set: { fieldValues[field] = $0 }
-        )
-    }
-    
-    private func binding(for field: FocusableField) -> Binding<FieldError> {
-        Binding(
-            get: { fieldErrors[field] ?? FieldError(status: false, message: "") },
-            set: { fieldErrors[field] = $0 }
-        )
     }
 }
 
