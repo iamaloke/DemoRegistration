@@ -16,10 +16,11 @@ struct BorderedTeftField: View {
     var field: FocusableField
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
+        VStack(alignment: .leading, spacing: 0) {
             
             Text(field.rawValue)
                 .font(.system(size: 16, weight: .medium))
+                .padding(.bottom, 8)
             
             if field.isSecured {
                 SecureField(field.rawValue, text: $text)
@@ -35,12 +36,11 @@ struct BorderedTeftField: View {
                     .modifier(TextFieldModifier(isFocused: isFocused == field))
             }
             
-            if isError.status {
-                Text(isError.message)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-                    .animation(.easeIn, value: isError.status)
-            }
+            Text(isError.status ? isError.message : "")
+                .font(.caption)
+                .foregroundStyle(.red)
+                .animation(.easeIn, value: isError.status)
+                .padding(.top, 4)
         }
     }
 }

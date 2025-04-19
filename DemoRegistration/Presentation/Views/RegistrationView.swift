@@ -36,8 +36,8 @@ struct RegistrationView: View {
                     Text("Start by creating a free account-Its simple!")
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
+                        .padding(.bottom, 100)
                     
-                    Spacer()
                     
                     BorderedTeftField(text: $viewModel.name, isError: $viewModel.nameError, isFocused: $isFocused, field: .name)
                     
@@ -45,8 +45,6 @@ struct RegistrationView: View {
                     
                     BorderedTeftField(text: $viewModel.password, isError: $viewModel.passwordError, isFocused: $isFocused, field: .password)
                     
-                    Spacer()
-                    Spacer()
                     Spacer()
                     
                     Button {
